@@ -1,0 +1,34 @@
+# Environment and credentials
+.env
+*.env
+!.env.example
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Datasets and junctions
+Capstone_Project_Dataset_FTTT_2026/
+test_audio/
+
+# Generated outputs
+outputs/
+eval_results/
+sample_outputs/*.json
+sample_outputs/*.wav
+sample_outputs/*.jsonl
+sample_outputs/*.csv
+
+# IDE / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,6 @@
+numpy>=1.26
+requests>=2.31
+python-dotenv>=1.0
+gnani-vachana>=0.5
+openai>=1.50           # used for OpenRouter (OpenAI-compatible API)
+fastembed>=0.4         # optional dense retrieval; the agent runs without it

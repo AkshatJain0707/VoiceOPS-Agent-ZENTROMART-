@@ -1,0 +1,480 @@
+=== PAGE 1 ===
+Intelligence that truly listens.
+CAPSTONE BRIEF
+VoiceOps 2026
+LLM & Generative AI Course · Consulting & Analytics Club, IIT Guwahati ×
+Gnani.ai
+Turn what you learned in the last three weeks into a customer support
+agent people can talk to. You will build a chatbot that answers from
+company documents and holds a conversation. Then you give it a voice
+with Gnani's speech models, so customers can simply call and ask.
+
+
+=== PAGE 2 ===
+BEFORE YOU START
+Important links
+WHAT LINK
+Create your Gnani account and API key app.gnani.ai/voice
+Gnani API quick start docs.gnani.ai: Quick Start
+Gnani Python SDK docs.gnani.ai: Python SDK
+Speech to text reference docs.gnani.ai: STT REST
+Text to speech reference docs.gnani.ai: TTS REST
+01The challenge
+You are the AI engineer at  a fictional Indian online store selling groceries and
+electronics. Every day its support team answers the same questions about late deliveries,
+returns, refunds and cancellations. Customers want quick, correct answers, and most of
+them would rather call than type.
+Your job is to build  support agent in four steps. Steps 1 to 3 use exactly
+what the course taught you, from prompting an LLM to RAG over documents. Step 4 adds
+the ears and the voice, so the same agent can take a phone call.
+VoiceOps 2026: Capstone Brief 02
+ZentroMart,
+ZentroMart's
+Capstone dataset Capstone_Project_Dataset_FTTT_2026.zip
+
+=== PAGE 3 ===
+01 · THE CHALLENGE
+What  gives you
+ASSET CONTENTS
+Company documents Return, refund, delivery, cancellation and warranty policies;
+product catalog; FAQs; when to hand over to a human
+Mock order records
+Mock tools lookup_order(order_id)  and create_ticket(summary)
+Practice questions
+You will be tested on new questions your agent has never seen. Build it to read
+the documents. Do not hardcode answers.
+Example conversation
+1 Customer calls: "My order still hasn't arrived. Can I cancel it?"
+2 The agent introduces itself as an AI assistant and asks for the order ID.
+3 It looks up the order, sees it has already shipped, and explains the cancellation policy
+for shipped orders.
+4 Customer: "How long will the refund take?" The agent knows this is about the same
+order and gives the refund timeline.
+5 Customer: "I want ₹500 compensation right now." The policy does not allow it.
+The agent says so politely, creates a ticket, and hands over to a human with a
+short summary.
+VoiceOps 2026: Capstone Brief 03
+ZentroMart
+Synthetic customer and order records in CSV tables
+Single questions and multi-turn conversations,
+with expected decisions and ASR-like text (no audio files)
+
+=== PAGE 4 ===
+01  ·  THE CHALLENGE  /  DATASET
+Dataset & database guide
+Use the fictional company data to ground answers, look up orders, and test the same support agent
+across text and voice.
+DOWNLOAD THE DATASET
+Download, extract, then begin with README.md and DATA_DICTIONARY.md.
+IN THE ZIP
+Files and their purpose
+FOLDER / FILES HOW TO USE IT
+README.md Start with the project setup and read the field definitions in
+DATA_DICTIONARY.md.
+kb/ · policy docs Chunk and index Markdown documents for RAG. Prioritize
+pol_returns_v4.md; pol_returns_v3_superseded.md is an older
+version.
+data/ · CSV tables Customers, orders, order items, products, support logs, pincodes
+and holidays. Use the dictionary to identify keys and join related
+records for lookups.
+tools/ · Python Inspect the provided helper modules; connect order lookup and
+ticket creation to the conversational agent.
+practice/ · CSV Use practice questions and conversations to measure
+prompting-only answers, then RAG and multi-turn quality.
+RECOMMENDED WORKFLOW
+1 Load the knowledge base
+Index the current policies and FAQs; save retrieved source chunks.
+2 Build the data and tool layer
+Read the CSV schema and implement real lookups / ticket actions.
+3 Evaluate and add voice
+Compare Step 1 vs Step 2; test follow-ups, then add Gnani STT/TTS.
+VoiceOps 2026: Capstone Brief 04
+Capstone_Project_Dataset_FTTT_2026.zip
+
+=== PAGE 5 ===
+01 · THE CHALLENGE / DATASET
+Dataset schema
+Nine CSV files, 21 knowledge-base documents and two Python mock tools. Use the verified table
+counts below and keep all IDs as strings.
+RELATIONAL STRUCTURE
+Customers
+customer_id →
+Orders
+customer_id, order_id→
+Order items
+order_id, sku →
+Products
+sku
+Reference joins: orders.delivery_pincode → pincodes.pincode. Use holidays.date for business-day timelines.
+DATA / SEVEN CSVS
+Core database tables
+kb/ · 21 Markdown documents
+Policies, agent guides, help and FAQs. Index by
+section ID for RAG.
+practice/ · 2 CSV files
+52 questions + (96 customer
+turns) for evaluation.
+TABLE / ROWS KEYS & JOINS USEFUL FIELDS
+customers.csv
+300 customers
+customer_id phone, pincode, is_plus,
+preferred_language
+orders.csv
+1,000 orders
+order_id
+FK: customer_id
+status, promised_date, payment,
+return and refund fields
+order_items.csv
+1,783 line items
+order_id + line_no
+FK: sku
+qty, unit_price_inr, return_category
+products.csv
+70 products
+sku price_inr, fulfilled_by, assured,
+warranty_months
+pincodes.csv
+36 pincodes
+pincode serviceable, cod_available,
+express_available
+holidays.csv
+4 dates
+date name; skip holidays when counting
+business days
+support_logs.csv
+244 historical logs
+log_id
+customer_id, order_id
+transcript, intent, resolution; context
+only
+VoiceOps 2026: Capstone Brief 05
+23 conversations
+
+=== PAGE 6 ===
+01 · THE CHALLENGE / DATASET
+How to use the datasetFollow this workflow to build a grounded support agent for ZentroMart, from data ingestion to voice
+testing.
+RECOMMENDED WORKFLOW
+1 Load the CSVs and map relationships
+Use pd.read_csv(path, dtype=str). Join orders to customers using customer_id; join items to
+orders with order_id, and items to products with sku. Empty fields mean missing or not
+applicable.
+2 Build your knowledge-base retrieval
+Chunk kb/* .md and preserve each [SECTION-ID], status and effective_from. Follow
+precedence: current policy → agent guide → help → FAQ → marketing. Historical support logs
+are not policy authority.
+3 Connect tools and verify the caller
+Import lookup_order and create_ticket from tools. Before revealing order details, match the
+customer's phone's last 4 digits or delivery pincode. Confirm a handover only after 
+created=True.
+4 Evaluate on practice cases
+Use practice/questions.csv to compare prompt-only vs. RAG answers; asr_text simulates
+transcription. Process practice/conversations.csv by conversation_id and turn. Check
+expected decisions, tool calls and gold_evidence.
+5 Apply date rules, then add speech
+Treat 20 October 2026 as today's date. Business days run Mon–Sat, excluding holidays.csv;
+return windows use calendar days. No audio clips are included: test with your own recorded
+voice and Gnani STT/TTS.
+Important: This refined ZIP uses ZentroMart consistently. The lookup_order tool enforces caller verification;
+run python validate_dataset.py before building.
+DOWNLOAD THE UPDATED DATASET
+Capstone_Project_Dataset_FTTT_2026.zip ↗
+Extract the ZIP. Read README.md and DATA_DICTIONARY.md first.
+VoiceOps 2026: Capstone Brief 06
+
+=== PAGE 7 ===
+01 · THE CHALLENGE / DATASET
+ZIP structure & file schema
+Use this as a map of the supplied archive: which folders contain knowledge, structured data, practice
+cases and executable tools.
+Folder structure
+Capstone_Project_Dataset_FTTT_2026/
+├── README.md
+├── DATA_DICTIONARY.md
+├── ZIP_SCHEMA.md
+├── CHANGELOG.md
+├── validate_dataset.py
+├── kb/                    21 .md files
+│   ├── 00_about_this_knowledge_base.md
+│   ├── agent_*.md
+│   ├── pol_*.md
+│   ├── help_*.md
+│   ├── faq_*.md
+│   └── mkt_*.md
+├── data/                  7 .csv files
+│   ├── customers.csv         300
+│   ├── orders.csv          1,000
+│   ├── order_items.csv     1,783
+│   ├── products.csv           70
+│   ├── pincodes.csv           36
+│   ├── holidays.csv            4
+│   └── support_logs.csv      244
+├── practice/              2 .csv files
+│   ├── questions.csv          52
+│   └── conversations.csv      96 turns
+└── tools/
+    ├── __init__.py
+    └── tools.py
+The practice set includes 23 conversations (96 turns). Use 
+ZIP_SCHEMA.md to check relationships and run 
+validate_dataset.py to validate the extracted files.
+Schema & primary keys
+Customers customer_id
+Orders order_id
+Order items order_id + line_no
+Products sku
+Pincodes pincode
+Holidays date
+Support logs log_id
+Treat IDs and pincodes as strings. Blank fields
+mean missing / not applicable. Read 
+DATA_DICTIONARY.md for every column
+and ZIP_SCHEMA.md for the joins.
+HOW THE TABLES CONNECT
+customers.customer_id = orders.customer_id · orders.order_id = order_items.order_id
+order_items.sku = products.sku · orders.delivery_pincode = pincodes.pincode
+Use holidays.date as a calendar reference for business-day calculations.
+Usage: Index kb/*.md for RAG; read data/*.csv for factual lookups; run tools/ for order lookup and ticket creation;
+evaluate with practice/*.csv. Use 20 Oct 2026 as the dataset's reference date. The practice files contain transcripts,
+not audio recordings. Start with README.md.
+VoiceOps 2026: Capstone Brief 07
+
+=== PAGE 8 ===
+VOICEOPS AGENT PIPELINE · ONE TURN
+IN
+Customer
+audio
+→
+EARS
+Gnani STT →
+BRAIN
+Your agent
+LLM · RAG · tools
+→
+VOICE
+Gnani TTS →
+OUT
+Spoken
+reply
+02 The four steps
+Each step adds one thing to the same agent, and each one reuses a week of the course.
+Finish all four to submit.
+1 Answer a question with an LLM
+RECAPS WEEKS 1 AND 2: YOUR FIRST LLM API CALL AND PROMPTING
+Call any LLM through its API, the way you did in the Week 1 checkpoint and the Week
+2 build. Give it a system prompt that makes it  support assistant, then
+send it a customer question.
+The system prompt sets the assistant's role and limits.
+The assistant's first reply tells the customer they are talking to an AI assistant.
+Try it on the practice questions  gives you.
+At this point it has not seen  documents, so it will guess. Note how
+many practice questions it gets right. Step 2 should beat that number.
+VoiceOps 2026: Capstone Brief
+ZentroMart's
+ZentroMart
+ZentroMart's
+08
+
+=== PAGE 9 ===
+02 · THE FOUR STEPS
+2 Ground it in the documents
+RECAPS WEEK 3: RAG
+Give the assistant  documents so it answers from facts.
+Split the documents into chunks and store their embeddings in a vector index.
+For each question, retrieve the most relevant chunks and answer only from them.
+When the documents do not cover a question, say so. Never invent a policy, date
+or amount.
+Keep track of which chunks each answer used.
+Run the same practice questions again and compare with Step 1. Put both numbers in
+your report.
+3 Hold a conversation
+RECAPS WEEKS 2 AND 3: CONTEXT WINDOWS AND EVALUATION
+Turn single answers into a real support conversation.
+Remember what the customer already said, such as the order ID and the problem.
+Understand follow-ups such as "how long will that take?" without asking the
+customer to repeat.
+Ask one clear question when a needed detail is missing.
+Use lookup_order  and create_ticket  when needed. Never say you did
+something your code did not do.
+Politely refuse requests that break policy, and hand over to a human with a short
+summary when the documents say a person must decide.
+Try it on the practice conversations  gives you.
+VoiceOps 2026: Capstone Brief
+ZentroMart's
+ZentroMart
+09
+
+=== PAGE 10 ===
+02 · THE FOUR STEPS
+4 Give it a voice
+THE NATURAL NEXT STEP: REAL CUSTOMERS CALL SUPPORT
+Wrap your Step 3 agent with Gnani's speech models. The agent's brain stays the
+same. Customer audio goes through Gnani STT into your agent, and the agent's
+reply comes back out through Gnani TTS.
+To set up
+1 Create a Gnani account and generate an API key at app.gnani.ai/voice. One key
+covers both STT and TTS.
+2 Save the key as the environment variable GNANI_API_KEY . Never put it in your code
+or commit it to Git.
+3 Install Gnani's official Python SDK: pip install gnani-vachana .
+Then the voice layer is about ten lines:
+from gnani.stt import GnaniSTTClient
+from gnani.tts import GnaniTTSClient
+stt = GnaniSTTClient()  # reads GNANI_API_KEY from your environment
+tts = GnaniTTSClient()
+def voice_turn(audio_path, agent):
+    heard = stt.transcribe(audio_path, language_code="en-IN")["transcript"]
+if not heard.strip():
+        reply = "Sorry, I didn't catch that. Could you say it again?"
+else:
+        reply = agent.respond(heard)  # your Step 3 agent
+    tts.synthesize(reply, voice="Kaveri", model="timbre-v2.5",
+                   language="en-IN", output_file="reply.wav")
+return heard, reply
+VoiceOps 2026: Capstone Brief 10
+
+=== PAGE 11 ===
+STEP 4 · GIVE IT A VOICE
+Things to know
+The two calls come from the Python SDK page. Things to know, each from its page
+on docs.gnani.ai:
+Always name the TTS model. Python SDK · Voice catalog
+The SDK's older default is no longer served and returns an error. The sample uses timbre-
+v2.5. timbre-v3.0 is also available, with 13 voices that each speak all 10 languages.
+Keep each customer turn short. STT REST
+The REST STT endpoint accepts clips up to 60 seconds.
+Use any of 10 Indian languages. STT REST · TTS REST
+Gnani STT handles Bengali, English, Gujarati, Hindi, Kannada, Malayalam, Marathi, Punjabi,
+Tamil and Telugu; set language_code on each call, for example gu-IN. TTS speaks the
+same languages plus hi-en for Hinglish. Your agent can listen in one language and reply in
+another, such as hearing Gujarati and answering in Hindi.
+Mixed English and Hindi is fine. STT Realtime
+The en-IN option accepts English mixed with Hindi and returns Latin script.
+Write replies for the ear. Text normalization guide
+Include the year in dates, and break long order numbers into groups with spaces so they are
+read clearly.
+Pick a voice. Voice catalog
+English voices for timbre-v2.5 include Kaveri, Trupti, Pranav and Shlok.
+When it works, record a 2-minute demo of a spoken conversation.
+VoiceOps 2026: Capstone Brief 11
+
+=== PAGE 12 ===
+03 Rules
+Use Gnani for listening and speaking. Everything else is your choice.
+COMPONENT RULE
+Speech to text (STT) Gnani API only
+Text to speech (TTS) Gnani API only
+LLM Any hosted or open-source LLM
+Embeddings, vector database,
+search
+Any
+Framework Any, or plain Python
+Interface Anything that plays and records audio: a web
+page or a notebook
+No other speech-to-text or text-to-speech service is allowed, even as a backup.
+Use only the synthetic customer data provided. Never use real customer data or real call
+recordings anywhere in building your solution.
+You may record your own voice for testing. Do not record other people without their
+written consent.
+Each participant uses their own Gnani account.
+Your agent must answer from the documents. Hardcoded answers will fail the
+test questions.
+Test answers must come from your agent, never typed or edited by hand.
+VoiceOps 2026: Capstone Brief 12
+
+=== PAGE 13 ===
+04 How you're evaluated
+Most of your score comes from what the course taught: grounded answers and a well-
+handled conversation. Voice is worth 20 marks.
+HOW IT WORKS
+1
+Practice on
+practice questions
+and conversations as
+often as you like.
+2
+Submit your code
+with a run command
+(see What to submit).
+3
+The organizers run
+every agent on the
+same new test
+questions, recorded
+as audio, and score
+the answers
+automatically.
+4
+The top 50 demo
+their agent live to the
+judges.
+Rubric (100 marks)
+The first five rows are scored automatically for every participant. The last two are judged for the top
+50. Using any speech service other than Gnani's disqualifies a submission.
+CRITERION MARKS WHAT WE CHECK STEP
+Correct, grounded answers 25 Answers match the documents, and the agent
+says "I don't know" when they don't cover the
+question
+2
+Retrieval quality 15 The agent found the right document chunks 2
+Conversation handling 20 Follow-ups, clarifying questions, refusals and
+handovers to a human
+3
+Your own evaluation 10 Your Step 1 vs Step 2 comparison and what you
+learned from it
+1 and 2
+Voice works end to end 10 The agent handles every test audio file and
+replies with speech
+4
+Voice experience 10 Judges listen: clear, short replies and recovery
+from unclear audio
+4
+Report and demo 10 A short report and a demo that shows the agent
+working
+All
+Total 100 Sum of all seven criteria above
+VoiceOps 2026: Capstone Brief
+ZentroMart's
+13
+
+=== PAGE 14 ===
+05What to submit
+Code repository Public Git repo with a README explaining how to install and run
+your agent, plus .env.example  with no keys in it
+Run command One command that takes a folder of customer audio files, runs
+your agent on each, and saves its replies (as text and audio) with
+the document chunks it used. The organizers use this to test
+every agent the same way.
+Short report Max 4 pages: what you built in each step, your Step 1 vs
+Step 2 scores, what went wrong and what you would fix, any
+bonus work
+Demo video Max 2 minutes: a question answered from the documents with a
+follow-up, plus one handover or "I don't know"
+All the best,
+Team C&A × Gnani.ai
+VoiceOps 2026: Capstone Brief
+Submission ZIP structure
+Package these deliverables together so your agent can be tested reproducibly.
+team_name_voiceops.zip
+|-- README.md
+|-- .env.example
+|-- requirements.txt *
+|-- run.py / run.sh *
+|-- src/
+|-- report.pdf
+|-- demo.mp4
+`-- sample_outputs/
+* Equivalent files accepted for other stacks.
+HOW TO SUBMIT
+README + repository
+Include the public GitHub URL, setup steps and
+exact run command.
+Batch run
+Accept a folder of audio; save text, speech
+output and retrieved sources.
+Keep secrets out
+Do not include .env, API keys, virtual
+environments or a dataset copy.
+14
+
